@@ -1,10 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-NE2DRH6YTY"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-NE2DRH6YTY');
+</script>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>The Scoop — Viral Food Content | Richmond, BC</title>
-<link rel="icon" type="image/png" href="favicon1.png">
 <meta name="description" content="Viral food content that fills tables. The Scoop grew its own food business to 180K+ views and 85 orders with no storefront, no ad spend, no collabs. Now for restaurants. Richmond, BC. English & 中文." />
 
 <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -620,6 +627,24 @@
     document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
   } else { document.querySelectorAll('.reveal').forEach(el=>el.classList.add('in')); }
 
+  // Section-view tracking (fires once per section when scrolled into view)
+  const seenSections = {};
+  if(typeof IntersectionObserver !== 'undefined'){
+    const secObs = new IntersectionObserver((entries)=>{
+      entries.forEach(e=>{
+        if(e.isIntersecting){
+          const id = e.target.id || e.target.className.split(' ')[0];
+          if(!seenSections[id]){
+            seenSections[id] = true;
+            if(typeof gtag === 'function'){ gtag('event', 'view_section', { section_name: id }); }
+            secObs.unobserve(e.target);
+          }
+        }
+      });
+    },{threshold:0.4});
+    document.querySelectorAll('section, header.nav, footer.foot').forEach(el=>secObs.observe(el));
+  }
+
   const form = document.getElementById('leadForm');
   const status = document.getElementById('formStatus');
   form.addEventListener('submit', async (e)=>{
@@ -629,7 +654,7 @@
     if(action.includes('YOUR_FORM_ID')){ status.textContent = FORM_MSG.notConnected[lang]; status.classList.add('err'); return; }
     try{
       const res = await fetch(action,{method:'POST',body:new FormData(form),headers:{'Accept':'application/json'}});
-      if(res.ok){ form.reset(); status.textContent = FORM_MSG.ok[lang]; status.classList.add('ok'); }
+      if(res.ok){ form.reset(); status.textContent = FORM_MSG.ok[lang]; status.classList.add('ok'); if(typeof gtag === 'function'){ gtag('event', 'generate_lead', { form: 'contact' }); } }
       else { status.textContent = FORM_MSG.fail[lang]; status.classList.add('err'); }
     }catch(err){ status.textContent = FORM_MSG.conn[lang]; status.classList.add('err'); }
   });
